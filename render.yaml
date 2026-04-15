@@ -1,10 +1,11 @@
 services:
-  # Backend — FastAPI on Render
+
+  # ── Backend — FastAPI ───────────────────────────────────────────────────────
   - type: web
     name: lifeline-navigator-api
     runtime: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && pip install scikit-learn shapely geopandas pyproj
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     disk:
       name: graph-cache
@@ -13,15 +14,19 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
-    plan: starter                      # free tier
+    plan: free
+    healthCheckPath: /
 
-  # Frontend — static site on Render
+  # ── Frontend — Static Site ──────────────────────────────────────────────────
   - type: web
     name: lifeline-navigator-ui
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://lifeline-navigator-api.onrender.com
     routes:
       - type: rewrite
         source: /api/*
