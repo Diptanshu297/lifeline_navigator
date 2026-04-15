@@ -1,0 +1,1 @@
+web: pip install uvicorn fastapi pydantic osmnx networkx numpy scipy httpx python-dotenv scikit-learn shapely geopandas pyproj Rtree pandas && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
