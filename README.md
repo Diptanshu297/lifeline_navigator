@@ -298,14 +298,11 @@ lifeline-navigator/
 
 ## 👥 Team
 
-| Name | Roll No | Contribution |
-|------|---------|-------------|
-| Markab Debbarma | 245859090 | Problem design, market analysis, deployment |
-| Diptanshu Datta | 245819186 | ACO algorithm, graph model, API backend |
-| Challa Ekansh Rao | 245819066 | Frontend, results analysis, Docker |
-
-**Guide:** Dr. Sowmya R — Dept. of Electronics & Communication Engineering  
-**Course:** Design & Analysis of Algorithms Lab — ECM Dept. 2026
+| Name | Contribution |
+|------|-------------|
+| Markab Debbarma||Problem design, market analysis, deployment |
+| Diptanshu Datta || ACO algorithm, graph model, API backend |
+| Challa Ekansh Rao || Frontend, results analysis, Docker |
 
 ---
 
