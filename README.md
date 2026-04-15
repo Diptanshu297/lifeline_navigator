@@ -300,7 +300,7 @@ lifeline-navigator/
 
 | Name | Contribution |
 |------|-------------|
-| Markab Debbarma || Problem design, market analysis, deployment |
+| Markab Debbarma||Problem design, market analysis, deployment |
 | Diptanshu Datta || ACO algorithm, graph model, API backend |
 | Challa Ekansh Rao || Frontend, results analysis, Docker |
 
