@@ -16,7 +16,7 @@ import networkx as nx
 logger = logging.getLogger(__name__)
 
 BANGALORE_CENTER = (12.9716, 77.5946)
-GRAPH_RADIUS_M   = 12_000
+GRAPH_RADIUS_M   = 7000
 CACHE_PATH       = Path(__file__).parent.parent / "data" / "bangalore_graph.pkl"
 NETWORK_TYPE     = "drive"
 
