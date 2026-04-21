@@ -54,17 +54,17 @@ API docs: append `/docs` to the Space URL.
 ## 🚀 Local Development
 
 ```bash
-# Backend
+
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python scripts/preload_graph.py       # One-time: downloads Bangalore graph
+python scripts/preload_graph.py       
 uvicorn app.main:app --reload --port 8000
 
-# Frontend (new terminal)
+
 cd frontend
 npm install
-npm run dev                           # → http://localhost:5173
+npm run dev                           
 ```
 
 ## 📡 API
