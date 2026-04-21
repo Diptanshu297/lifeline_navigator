@@ -134,10 +134,14 @@ class GraphManager:
         # Medium route (100 hops) → radius 3
         # Long route  (500 hops) → radius 4
         max_path_len = max(path_lengths)
-        if   max_path_len < 30:   radius = 2
-        elif max_path_len < 100:  radius = 2
-        elif max_path_len < 300:  radius = 3
-        else:                     radius = 3   # cap at 3 to keep subgraph bounded
+        if   max_path_len < 30:   
+            radius = 2
+        elif max_path_len < 100:  
+            radius = 2
+        elif max_path_len < 300:  
+            radius = 3
+        else:                     
+            radius = 3   # cap at 3 to keep subgraph bounded
 
         logger.info("Corridor length %d hops → expansion radius %d",
                     max_path_len, radius)
