@@ -6,7 +6,7 @@ Serves React frontend as static files on '/' (same-origin deploy).
 from __future__ import annotations
 
 import logging
-import os
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 
