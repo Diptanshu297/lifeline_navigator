@@ -21,31 +21,27 @@ FROM python:3.11-slim
 
 # System dependencies for osmnx / scipy / shapely
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libgeos-dev libgdal-dev \
+    gcc g++ libgeos-dev libgdal-dev curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Hugging Face Spaces requires a non-root user with UID 1000
-RUN useradd -m -u 1000 user
-USER user
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1
+WORKDIR /app
 
-WORKDIR /home/user/app
-
-# Python deps
-COPY --chown=user backend/requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt \
-    && pip install --user --no-cache-dir scikit-learn
+# Python deps — install system-wide (not --user)
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir scikit-learn
 
 # App code
-COPY --chown=user backend/ ./
+COPY backend/ ./
 
-# Built React assets → served as static files
-COPY --chown=user --from=frontend-builder /build/dist ./static
+# Built React frontend
+COPY --from=frontend-builder /build/dist ./static
 
-# Graph cache directory (persisted via HF Spaces storage)
-RUN mkdir -p /home/user/app/data
+# Create data dir (for graph cache) and chown everything to HF user
+RUN mkdir -p /app/data && useradd -m -u 1000 user && chown -R user:user /app
+USER user
+
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 7860
 
