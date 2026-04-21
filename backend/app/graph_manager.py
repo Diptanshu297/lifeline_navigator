@@ -1,8 +1,9 @@
 """
 Graph Manager — loads real Bangalore road network from OpenStreetMap via OSMnx.
 
-Key method: subgraph_for_routing() extracts a focused ~500-2000 node subgraph
-from Dijkstra shortest paths so ACO can realistically find routes.
+Key improvement: Multi-hop subgraph expansion scales with distance.
+Short routes get tight subgraphs; long routes get wider ones so ACO
+has room to explore alternative paths.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ import networkx as nx
 logger = logging.getLogger(__name__)
 
 BANGALORE_CENTER = (12.9716, 77.5946)
-GRAPH_RADIUS_M   = 7000
+GRAPH_RADIUS_M   = 12_000
 CACHE_PATH       = Path(__file__).parent.parent / "data" / "bangalore_graph.pkl"
 NETWORK_TYPE     = "drive"
 
@@ -34,11 +35,7 @@ DEFAULT_SPEED_KPH = 25.0
 
 
 def _weight_fn(u, v, d):
-    """Edge weight function for Dijkstra — minimum travel_time across parallel edges."""
-    return min(
-        (e.get("travel_time", 60.0) for e in d.values()),
-        default=60.0,
-    )
+    return min((e.get("travel_time", 60.0) for e in d.values()), default=60.0)
 
 
 class GraphManager:
@@ -77,14 +74,13 @@ class GraphManager:
                  "lon": float(self.G.nodes[n]["x"])} for n in path]
 
     def edge_travel_time(self, u: int, v: int, G: nx.MultiDiGraph = None) -> float:
-        """Travel time in minutes for edge (u,v) on given graph (default full graph)."""
         g = G if G is not None else self.G
         edges = g[u][v]
         best = min(
             (e.get("travel_time", self._compute_travel_time(e)) for e in edges.values()),
             default=2.0,
         )
-        return best / 60.0  # seconds → minutes
+        return best / 60.0
 
     def successors_unvisited(self, node: int, visited: set,
                               G: nx.MultiDiGraph = None) -> List[int]:
@@ -104,59 +100,99 @@ class GraphManager:
     def subgraph_for_routing(self, source: int,
                               targets: Set[int]) -> nx.MultiDiGraph:
         """
-        Build a focused subgraph for ACO by:
-          1. Running Dijkstra from source to every target hospital.
-          2. Collecting all nodes on those shortest paths.
-          3. Expanding each path node 1 hop outward for route diversity.
+        Build a routing subgraph wide enough to allow ACO exploration.
 
-        Result: ~500–3000 nodes instead of 134k — ACO can realistically
-        find the destination within hundreds of steps.
+        Strategy:
+          1. Find Dijkstra shortest path to EACH target (not just the closest).
+             All paths combined = "route corridor" spanning the city.
+          2. Expand radius proportional to corridor length — wider corridor
+             for longer routes so ants have room to explore alternatives.
+          3. Cap subgraph size to keep ACO tractable.
         """
         core: Set[int] = {source}
-        core.update(targets)
 
+        # 1. Collect shortest paths to every reachable target
+        path_lengths: List[int] = []
         for target in targets:
             try:
-                path = nx.shortest_path(self.G, source, target,
-                                        weight=_weight_fn)
+                path = nx.shortest_path(self.G, source, target, weight=_weight_fn)
                 core.update(path)
+                path_lengths.append(len(path))
             except (nx.NetworkXNoPath, nx.NodeNotFound):
                 continue
 
-        if len(core) <= 2:
-            # Dijkstra found nothing — return ego_graph as fallback
-            logger.warning("Dijkstra found no paths — using ego_graph fallback")
-            ego = nx.ego_graph(self.G, source, radius=300, undirected=True)
-            for t in targets:
-                if t in self.G:
-                    core.update([t])
-            return self.G.subgraph(core | set(ego.nodes)).copy()
+        if not path_lengths:
+            # Source is isolated — return empty subgraph with source + targets
+            logger.warning("No Dijkstra path found from source to any target")
+            ego = nx.ego_graph(self.G, source, radius=50, undirected=True)
+            core |= set(ego.nodes)
+            core |= targets
+            return self.G.subgraph(core).copy()
 
-        # Expand 1 hop for diversity
+        # 2. Expansion radius scales with longest path
+        # Short route (20 hops)  → radius 2 (small subgraph, fast ACO)
+        # Medium route (100 hops) → radius 3
+        # Long route  (500 hops) → radius 4
+        max_path_len = max(path_lengths)
+        if   max_path_len < 30:   radius = 2
+        elif max_path_len < 100:  radius = 2
+        elif max_path_len < 300:  radius = 3
+        else:                     radius = 3   # cap at 3 to keep subgraph bounded
+
+        logger.info("Corridor length %d hops → expansion radius %d",
+                    max_path_len, radius)
+
+        # 3. BFS expansion around every core node
         expanded: Set[int] = set(core)
-        for node in core:
-            expanded.update(self.G.successors(node))
-            expanded.update(self.G.predecessors(node))
+        frontier = set(core)
+        for _ in range(radius):
+            next_frontier: Set[int] = set()
+            for node in frontier:
+                # Add both predecessors and successors for bidirectional coverage
+                next_frontier.update(self.G.successors(node))
+                next_frontier.update(self.G.predecessors(node))
+            next_frontier -= expanded  # only genuinely new nodes
+            expanded.update(next_frontier)
+            frontier = next_frontier
 
-        # Always include target nodes even if not reachable by Dijkstra
+            # Safety cap — keep subgraph tractable for ACO
+            if len(expanded) > 8000:
+                logger.info("Subgraph reached cap at 8000 nodes (radius used: partial)")
+                break
+
+        # Always include all targets so ACO has something to aim for
         expanded.update(targets)
 
         sub = self.G.subgraph(expanded).copy()
-        logger.info("Subgraph built — %d nodes, %d edges (from %d core nodes)",
-                    sub.number_of_nodes(), sub.number_of_edges(), len(core))
+
+        # 4. Connectivity sanity check — ensure at least one target is reachable
+        reachable_targets = targets & set(sub.nodes)
+        if not reachable_targets or source not in sub.nodes:
+            logger.warning("Subgraph disconnected — falling back to full graph")
+            return self.G
+
+        # Verify source can actually reach at least one target in subgraph
+        try:
+            for t in reachable_targets:
+                if nx.has_path(sub, source, t):
+                    break
+            else:
+                logger.warning("No reachable target in subgraph — using full graph")
+                return self.G
+        except nx.NodeNotFound:
+            return self.G
+
+        logger.info("Subgraph built — %d nodes, %d edges (from %d core nodes, radius %d)",
+                    sub.number_of_nodes(), sub.number_of_edges(), len(core), radius)
         return sub
 
     def dijkstra_path(self, source: int,
                       targets: Dict[str, int]) -> Tuple[str, float, List[int]]:
-        """
-        Dijkstra shortest path from source to each target hospital.
-        Returns (hospital_id, cost_minutes, path_nodes) for the best.
-        """
         best_id, best_cost, best_path = None, float("inf"), []
         for hid, tnode in targets.items():
             try:
                 cost, path = nx.single_source_dijkstra(
-                    self.G, source, tnode, weight=_weight_fn, cutoff=180,
+                    self.G, source, tnode, weight=_weight_fn, cutoff=180 * 60,
                 )
                 cost_min = cost / 60.0
                 if cost_min < best_cost:
