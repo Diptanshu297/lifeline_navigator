@@ -13,7 +13,7 @@ body {
   overflow: hidden;
 }
 
-/* Leaflet map custom styles */
+
 .leaflet-container { background: #09111F; }
 
 .leaflet-tile {
@@ -21,7 +21,7 @@ body {
           brightness(0.5) contrast(1.1);
 }
 
-/* Custom popup */
+
 .leaflet-popup-content-wrapper {
   background: #0A1828;
   border: 1px solid #1A3352;
@@ -30,12 +30,12 @@ body {
 }
 .leaflet-popup-tip { background: #0A1828; }
 
-/* Scrollbar */
+
 ::-webkit-scrollbar       { width: 4px; }
 ::-webkit-scrollbar-track { background: #05101E; }
 ::-webkit-scrollbar-thumb { background: #1A3352; border-radius: 2px; }
 
-/* Ambulance pulse animation */
+
 @keyframes pulse-ring {
   0%   { transform: scale(0.8); opacity: 1; }
   100% { transform: scale(2);   opacity: 0; }

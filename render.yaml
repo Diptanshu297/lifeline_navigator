@@ -1,6 +1,5 @@
 services:
 
-  # ── Backend — FastAPI ───────────────────────────────────────────────────────
   - type: web
     name: lifeline-navigator-api
     runtime: python
@@ -17,7 +16,6 @@ services:
     plan: free
     healthCheckPath: /
 
-  # ── Frontend — Static Site ──────────────────────────────────────────────────
   - type: web
     name: lifeline-navigator-ui
     runtime: static

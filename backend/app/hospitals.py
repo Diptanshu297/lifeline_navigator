@@ -6,7 +6,7 @@ from typing import Dict, List, Any
 
 HOSPITALS: Dict[str, Dict[str, Any]] = {
 
-    # ── Government / Tertiary ─────────────────────────────────────────────────
+    
     "victoria": {
         "id": "victoria", "name": "Victoria Hospital",
         "lat": 12.9604, "lon": 77.5703,
@@ -56,7 +56,7 @@ HOSPITALS: Dict[str, Dict[str, Any]] = {
         "level": "Government Tertiary",
     },
 
-    # ── Private Tertiary — North ───────────────────────────────────────────────
+    
     "apollo_sheshadripuram": {
         "id": "apollo_sheshadripuram", "name": "Apollo Hospital (Sheshadripuram)",
         "lat": 13.0040, "lon": 77.5630,
@@ -98,7 +98,7 @@ HOSPITALS: Dict[str, Dict[str, Any]] = {
         "level": "Private Tertiary",
     },
 
-    # ── Private Tertiary — West / Central ─────────────────────────────────────
+    
     "fortis_rajajinagar": {
         "id": "fortis_rajajinagar", "name": "Fortis Hospital (Rajajinagar)",
         "lat": 12.9919, "lon": 77.5524,
@@ -124,7 +124,7 @@ HOSPITALS: Dict[str, Dict[str, Any]] = {
         "level": "Private Secondary",
     },
 
-    # ── Private Tertiary — East ────────────────────────────────────────────────
+    
     "manipal_airport": {
         "id": "manipal_airport", "name": "Manipal Hospital (Old Airport Road)",
         "lat": 12.9695, "lon": 77.6506,
@@ -158,7 +158,7 @@ HOSPITALS: Dict[str, Dict[str, Any]] = {
         "level": "Private Tertiary",
     },
 
-    # ── Private Tertiary — South ───────────────────────────────────────────────
+    
     "st_johns": {
         "id": "st_johns", "name": "St. John's Medical College Hospital",
         "lat": 12.9254, "lon": 77.6240,
@@ -218,7 +218,7 @@ HOSPITALS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# Emergency type → eligible hospital IDs
+
 EMERGENCY_ELIGIBILITY: Dict[str, List[str]] = {
     "cardiac": [
         "apollo_sheshadripuram", "fortis_rajajinagar", "manipal_airport",

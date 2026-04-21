@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger(__name__)
 
-# Path to built React frontend (mounted by Dockerfile)
+
 STATIC_DIR = Path(__file__).parent.parent / "static"
 
 
@@ -59,7 +59,6 @@ def _cap_penalty(hid: str) -> float:
     return 1.0 + (h.get("capacity_pct", 50) / 100.0) * 0.5
 
 
-# ── API routes ────────────────────────────────────────────────────────────────
 
 @app.get("/api/health", tags=["Health"])
 async def health():
@@ -182,24 +181,23 @@ async def find_route(req: RouteRequest):
     )
 
 
-# ── Static frontend (must be last — catches everything else) ──────────────────
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
-    # Serve assets folder
+   
     app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
-    # Serve index.html for root and any other path (SPA fallback)
+    
     @app.get("/", include_in_schema=False)
     async def serve_index():
         return FileResponse(STATIC_DIR / "index.html")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(full_path: str):
-        # Try serving a file if it exists
+        
         candidate = STATIC_DIR / full_path
         if candidate.is_file():
             return FileResponse(candidate)
-        # Otherwise fall back to index.html (React Router handles routing)
+        
         return FileResponse(STATIC_DIR / "index.html")
 else:
     logger.warning("Static frontend not found at %s — API only mode.", STATIC_DIR)

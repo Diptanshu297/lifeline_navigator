@@ -6,8 +6,6 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
-# ── Request models ────────────────────────────────────────────────────────────
-
 class ACOParams(BaseModel):
     iterations:  int   = Field(default=40,   ge=5,   le=200, description="Number of ACO iterations")
     ants:        int   = Field(default=20,   ge=5,   le=100, description="Ants per iteration")
@@ -44,7 +42,6 @@ class RouteRequest(BaseModel):
     }
 
 
-# ── Response models ───────────────────────────────────────────────────────────
 
 class Coordinate(BaseModel):
     lat: float
@@ -80,25 +77,25 @@ class DijkstraComparison(BaseModel):
 
 
 class RouteResponse(BaseModel):
-    # Main ACO result
+    
     aco_travel_time_min:  float
     aco_path:             List[Coordinate]
     aco_hops:             int
     chosen_hospital:      HospitalResult
     converged_at_iter:    int
-    convergence_data:     List[float]   # best cost per iteration
+    convergence_data:     List[float]   
 
-    # Dijkstra comparison
+    
     dijkstra:             DijkstraComparison
 
-    # Savings
+   
     time_saved_min:       float
     time_saved_pct:       float
 
-    # All eligible hospitals with their costs
+    
     all_hospitals:        List[HospitalResult]
 
-    # Meta
+    
     graph_nodes_explored: int
     total_ants_deployed:  int
 

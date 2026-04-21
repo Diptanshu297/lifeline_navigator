@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Preload and cache the Bangalore road graph.
 Run this once before starting the server, or on first Docker build.

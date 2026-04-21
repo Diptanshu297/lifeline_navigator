@@ -47,7 +47,7 @@ class GraphManager:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    # ── Public API ────────────────────────────────────────────────────────────
+    
 
     def load(self) -> None:
         if self.G is not None:
@@ -111,7 +111,7 @@ class GraphManager:
         """
         core: Set[int] = {source}
 
-        # 1. Collect shortest paths to every reachable target
+        
         path_lengths: List[int] = []
         for target in targets:
             try:
@@ -122,17 +122,12 @@ class GraphManager:
                 continue
 
         if not path_lengths:
-            # Source is isolated — return empty subgraph with source + targets
+            
             logger.warning("No Dijkstra path found from source to any target")
             ego = nx.ego_graph(self.G, source, radius=50, undirected=True)
             core |= set(ego.nodes)
             core |= targets
             return self.G.subgraph(core).copy()
-
-        # 2. Expansion radius scales with longest path
-        # Short route (20 hops)  → radius 2 (small subgraph, fast ACO)
-        # Medium route (100 hops) → radius 3
-        # Long route  (500 hops) → radius 4
         max_path_len = max(path_lengths)
         if   max_path_len < 30:   
             radius = 2
@@ -141,41 +136,41 @@ class GraphManager:
         elif max_path_len < 300:  
             radius = 3
         else:                     
-            radius = 3   # cap at 3 to keep subgraph bounded
+            radius = 3   
 
         logger.info("Corridor length %d hops → expansion radius %d",
                     max_path_len, radius)
 
-        # 3. BFS expansion around every core node
+        
         expanded: Set[int] = set(core)
         frontier = set(core)
         for _ in range(radius):
             next_frontier: Set[int] = set()
             for node in frontier:
-                # Add both predecessors and successors for bidirectional coverage
+                
                 next_frontier.update(self.G.successors(node))
                 next_frontier.update(self.G.predecessors(node))
             next_frontier -= expanded  # only genuinely new nodes
             expanded.update(next_frontier)
             frontier = next_frontier
 
-            # Safety cap — keep subgraph tractable for ACO
+            
             if len(expanded) > 8000:
                 logger.info("Subgraph reached cap at 8000 nodes (radius used: partial)")
                 break
 
-        # Always include all targets so ACO has something to aim for
+        
         expanded.update(targets)
 
         sub = self.G.subgraph(expanded).copy()
 
-        # 4. Connectivity sanity check — ensure at least one target is reachable
+        
         reachable_targets = targets & set(sub.nodes)
         if not reachable_targets or source not in sub.nodes:
             logger.warning("Subgraph disconnected — falling back to full graph")
             return self.G
 
-        # Verify source can actually reach at least one target in subgraph
+        
         try:
             for t in reachable_targets:
                 if nx.has_path(sub, source, t):
@@ -205,7 +200,7 @@ class GraphManager:
                 continue
         return best_id, best_cost, best_path
 
-    # ── Private ───────────────────────────────────────────────────────────────
+    
 
     def _download_and_cache(self) -> None:
         import osmnx as ox

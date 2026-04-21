@@ -3,14 +3,14 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline,
          CircleMarker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 
-// Fix Leaflet default icon
+
 import iconUrl       from "leaflet/dist/images/marker-icon.png";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import shadowUrl     from "leaflet/dist/images/marker-shadow.png";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
-// Custom ambulance icon
+
 const ambIcon = L.divIcon({
   html: `<div style="
     width:32px;height:32px;background:#FF3347;border-radius:50%;
@@ -21,7 +21,7 @@ const ambIcon = L.divIcon({
   className: "",
 });
 
-// Hospital icon factory
+
 const hospIcon = (chosen, eligible) => L.divIcon({
   html: `<div style="
     width:28px;height:28px;
@@ -32,7 +32,7 @@ const hospIcon = (chosen, eligible) => L.divIcon({
   iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-16], className:"",
 });
 
-// Click handler component
+
 function ClickHandler({ onClick }) {
   useMapEvents({ click: (e) => onClick(e.latlng) });
   return null;

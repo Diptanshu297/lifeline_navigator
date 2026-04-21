@@ -52,13 +52,12 @@ class ACO:
 
         t0 = time.perf_counter()
 
-        # ── Build focused subgraph ─────────────────────────────────────────
         logger.info("Building routing subgraph …")
         sub_G = self.gm.subgraph_for_routing(source, targets)
         n_sub = sub_G.number_of_nodes()
         logger.info("Subgraph: %d nodes, %d edges", n_sub, sub_G.number_of_edges())
 
-        # Verify source and at least one target exist in subgraph
+        
         reachable_targets = targets & set(sub_G.nodes)
         if source not in sub_G.nodes or not reachable_targets:
             logger.warning("Source or targets not in subgraph — falling back to Dijkstra only")
@@ -72,7 +71,7 @@ class ACO:
         converged_at = 1
         convergence: List[float] = []
         nodes_explored = 0
-        # max_steps scales with subgraph size — always enough to traverse it
+        
         max_steps = max(800, n_sub * 2)
 
         for iteration in range(1, n_iterations + 1):
@@ -118,7 +117,7 @@ class ACO:
             elapsed_sec      = elapsed,
         )
 
-    # ── Private ───────────────────────────────────────────────────────────────
+    
 
     def _init_pheromone(self, G: nx.MultiDiGraph):
         tau0 = (self.tau_min + self.tau_max) / 2
@@ -139,7 +138,7 @@ class ACO:
             if not neighbors:
                 return None
 
-            # Shortcut: jump directly to target if it's a neighbour
+            
             t_neighbors = [n for n in neighbors if n in targets]
             if t_neighbors:
                 nxt = t_neighbors[0]

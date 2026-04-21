@@ -10,23 +10,23 @@ const DEFAULT_PARAMS = {
 };
 
 export default function App() {
-  // Map state
+  
   const [startPos,  setStartPos]  = useState(null);   // {lat, lon}
   const [hospitals, setHospitals] = useState([]);
   const [emergType, setEmergType] = useState("cardiac");
   const [eligibility, setElig]    = useState({});
   const [graphInfo, setGraphInfo] = useState(null);
 
-  // ACO params
+  
   const [params, setParams] = useState(DEFAULT_PARAMS);
 
-  // Result state
+  
   const [result,  setResult]  = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
   const [status,  setStatus]  = useState("Click on the map to set ambulance start position");
 
-  // Load hospitals and graph info on mount
+  
   useEffect(() => {
     fetchHospitals()
       .then(d => { setHospitals(d.hospitals); setElig(d.emergency_types); })
